@@ -2492,6 +2492,110 @@ proof fn c()
 }
 
 #[test]
+fn verus_allocates() {
+    let file = r###"
+verus! {
+fn a() -> u8
+    allocates 1
+{
+    1
+}
+
+fn b(n: usize) -> (r: u8)
+    requires n > 0
+    ensures r == 0
+    allocates n + 1
+{
+    0
+}
+
+fn c()
+    no_unwind
+    allocates 0
+{
+}
+
+fn d()
+    ensures true, allocates 2
+{
+}
+
+pub assume_specification<T>[ f::<T> ](x: T) -> (r: T)
+    ensures r == x,
+    allocates if true { 1int } else { 0int }
+;
+
+fn closures() {
+    let a = |y: u8| -> (r: u8) allocates 1 { y };
+    let b = |y: u8| -> (r: u8) ensures r == y allocates 0 { y };
+}
+} // verus!
+"###;
+    assert_snapshot!(parse_and_format(file).unwrap(), @r###"
+    verus! {
+
+    fn a() -> u8
+        allocates
+            1,
+    {
+        1
+    }
+
+    fn b(n: usize) -> (r: u8)
+        requires
+            n > 0,
+        ensures
+            r == 0,
+        allocates
+            n + 1,
+    {
+        0
+    }
+
+    fn c()
+        no_unwind
+        allocates
+            0,
+    {
+    }
+
+    fn d()
+        ensures
+            true,
+        allocates
+            2,
+    {
+    }
+
+    pub assume_specification<T>[ f::<T> ](x: T) -> (r: T)
+        ensures
+            r == x,
+        allocates
+            if true {
+                1int
+            } else {
+                0int
+            },
+    ;
+
+    fn closures() {
+        let a = |y: u8| -> (r: u8)
+            allocates
+                1,
+            { y };
+        let b = |y: u8| -> (r: u8)
+            ensures
+                r == y,
+            allocates
+                0,
+            { y };
+    }
+
+    } // verus!
+    "###);
+}
+
+#[test]
 fn verus_generic_arg_binding() {
     let file = r###"
 verus! {
