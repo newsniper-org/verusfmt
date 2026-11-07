@@ -4019,3 +4019,43 @@ fn first<T: Clone with { fn clone(&self) -> (r: Self) ensures r == *self allocat
     } // verus!
     "###);
 }
+
+#[test]
+fn verus_bound_spec_where_impl_struct() {
+    let file = r#"
+verus! {
+pub struct Pair<T: Clone with { fn clone(&self) -> Self allocates 0; }>(pub T, pub T);
+
+impl<T: Clone with { fn clone(&self) -> Self allocates 0; }> Pair<T> {
+    fn dup(x: &T) -> Self allocates 0 { Pair(x.clone(), x.clone()) }
+}
+
+fn dup2<T>(x: &T) -> (T, T) where T: Clone with { fn clone(&self) -> Self allocates 0;   fn drop allocates 0; }, {
+    (x.clone(), x.clone())
+}
+} // verus!
+"#;
+
+    assert_snapshot!(parse_and_format(file).unwrap(), @r###"
+    verus! {
+
+    pub struct Pair<T: Clone with { fn clone(&self) -> Self allocates 0; }>(pub T, pub T);
+
+    impl<T: Clone with { fn clone(&self) -> Self allocates 0; }> Pair<T> {
+        fn dup(x: &T) -> Self
+            allocates
+                0,
+        {
+            Pair(x.clone(), x.clone())
+        }
+    }
+
+    fn dup2<T>(x: &T) -> (T, T) where
+        T: Clone with { fn clone(&self) -> Self allocates 0; fn drop allocates 0; },
+     {
+        (x.clone(), x.clone())
+    }
+
+    } // verus!
+    "###);
+}

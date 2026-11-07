@@ -1004,7 +1004,8 @@ where_preds = {
 }
 
 where_pred = {
-    (for_str ~ generic_param_list)? ~ (lifetime_no_space | type) ~ colon_str ~ type_bound_list?
+    (for_str ~ generic_param_list)? ~ (lifetime_no_space | type) ~ colon_str ~ type_bound_list? ~
+    bound_spec?
 }
 
 visibility = {
