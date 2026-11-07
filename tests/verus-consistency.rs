@@ -3980,3 +3980,42 @@ fn acquire_lock() -> bool {
     } // verus!
     "###);
 }
+
+#[test]
+fn verus_bound_spec() {
+    let file = r#"
+verus! {
+fn dup<T: Clone with { fn clone(&self) -> Self allocates 0;   fn drop allocates 0; }>(x: &T) -> (r: (T, T))
+    allocates 0
+{
+    (x.clone(), x.clone())
+}
+
+fn first<T: Clone with { fn clone(&self) -> (r: Self) ensures r == *self allocates 0; }, U>(x: &T) -> T {
+    x.clone()
+}
+} // verus!
+"#;
+
+    assert_snapshot!(parse_and_format(file).unwrap(), @r###"
+    verus! {
+
+    fn dup<T: Clone with { fn clone(&self) -> Self allocates 0; fn drop allocates 0; }>(x: &T) -> (r: (
+        T,
+        T,
+    ))
+        allocates
+            0,
+    {
+        (x.clone(), x.clone())
+    }
+
+    fn first<T: Clone with { fn clone(&self) -> (r: Self) ensures r == *self allocates 0; }, U>(
+        x: &T,
+    ) -> T {
+        x.clone()
+    }
+
+    } // verus!
+    "###);
+}

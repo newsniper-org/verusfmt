@@ -335,6 +335,7 @@ nat_str = ${ "nat" ~ !("_" | ASCII_ALPHANUMERIC) }
 none_str = ${ "none" ~ !("_" | ASCII_ALPHANUMERIC) }
 no_unwind_str = ${ "no_unwind" ~ !("_" | ASCII_ALPHANUMERIC) }
 allocates_str = ${ "allocates" ~ !("_" | ASCII_ALPHANUMERIC) }
+with_str = ${ "with" ~ !("_" | ASCII_ALPHANUMERIC) }
 no_unwind_when_str = ${ "when" ~ !("_" | ASCII_ALPHANUMERIC) }
 opens_invariants_str = ${ "opens_invariants" ~ !("_" | ASCII_ALPHANUMERIC) }
 open_str = ${ "open" ~ !("_" | ASCII_ALPHANUMERIC) }
@@ -972,8 +973,17 @@ generic_param = {
 }
 
 type_param = {
-    attr* ~ name ~ (colon_str ~ type_bound_list?)? ~
+    attr* ~ name ~ (colon_str ~ type_bound_list?)? ~ bound_spec? ~
     (eq_str ~ type)?
+}
+
+// Verus fork (alloc-check): `T: Tr with { fn m(&self) -> R allocates e; fn drop allocates 0; }`
+bound_spec = {
+    with_str ~ lbrace_str ~ bound_spec_fn* ~ rbrace_str
+}
+
+bound_spec_fn = {
+    fn_str ~ name ~ (generic_param_list? ~ param_list ~ ret_type?)? ~ fn_qualifier ~ semi_str
 }
 
 const_param = {

@@ -791,6 +791,7 @@ fn to_doc<'a>(
         | Rule::recommends_str
         | Rule::no_unwind_str
         | Rule::allocates_str
+        | Rule::with_str
         | Rule::requires_str => arena.hardline().append(s).nest(INDENT_SPACES),
 
         Rule::no_unwind_when_str => arena.space().append(s).append(arena.space()),
@@ -1096,6 +1097,27 @@ fn to_doc<'a>(
                 pair.into_inner()
                     .filter(|p| has_bound || p.as_rule() != Rule::colon_str)
                     .map(|p| to_doc(ctx, p, arena)),
+            )
+        }
+        Rule::bound_spec => {
+            let fns: Vec<_> = pair
+                .into_inner()
+                .filter(|p| p.as_rule() == Rule::bound_spec_fn)
+                .map(|p| to_doc(ctx, p, arena))
+                .collect();
+            arena
+                .text(" with {")
+                .append(arena.concat(fns.into_iter().map(|d| arena.space().append(d))))
+                .append(arena.text(" }"))
+        }
+        Rule::bound_spec_fn => {
+            // (kept on one line: `fn m(&self) -> R allocates e;`)
+            arena.text(
+                pair.as_str()
+                    .split_whitespace()
+                    .collect::<Vec<_>>()
+                    .join(" ")
+                    .replace(" ;", ";"),
             )
         }
         Rule::const_param => map_to_doc(ctx, arena, pair),
