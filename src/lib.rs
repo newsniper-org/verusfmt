@@ -817,6 +817,7 @@ fn to_doc<'a>(
         | Rule::outer_mask_str
         | Rule::proof_str
         | Rule::return_str
+        | Rule::become_str
         | Rule::self_str
         | Rule::spec_str
         | Rule::true_str => s,
@@ -1370,6 +1371,7 @@ fn to_doc<'a>(
             }))
         }
         Rule::return_expr => maybe_space_to_doc(ctx, arena, pair),
+        Rule::become_expr => maybe_space_to_doc(ctx, arena, pair),
         Rule::yield_expr => map_to_doc(ctx, arena, pair),
         Rule::yeet_expr => map_to_doc(ctx, arena, pair),
         Rule::let_expr_no_struct => map_to_doc(ctx, arena, pair),

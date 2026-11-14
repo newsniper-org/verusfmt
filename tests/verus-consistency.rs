@@ -4059,3 +4059,49 @@ fn dup2<T>(x: &T) -> (T, T) where T: Clone with { fn clone(&self) -> Self alloca
     } // verus!
     "###);
 }
+
+#[test]
+fn verus_become() {
+    let file = r#"
+verus! {
+#[verifier::fip(strict)]
+fn count_down(x: u64) -> (r: u64) ensures r == 0 decreases x allocates 0 {
+    if x == 0 { 0 } else { become   count_down(x - 1) }
+}
+
+#[verifier::fip(strict)]
+fn even(x: u64) -> bool decreases x { match x { 0 => true, _ => become odd(x - 1) } }
+} // verus!
+"#;
+
+    assert_snapshot!(parse_and_format(file).unwrap(), @r###"
+    verus! {
+
+    #[verifier::fip(strict)]
+    fn count_down(x: u64) -> (r: u64)
+        ensures
+            r == 0,
+        decreases x,
+        allocates
+            0,
+    {
+        if x == 0 {
+            0
+        } else {
+            become count_down(x - 1)
+        }
+    }
+
+    #[verifier::fip(strict)]
+    fn even(x: u64) -> bool
+        decreases x,
+    {
+        match x {
+            0 => true,
+            _ => become odd(x - 1),
+        }
+    }
+
+    } // verus!
+    "###);
+}

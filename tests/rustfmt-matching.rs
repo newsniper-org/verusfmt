@@ -494,3 +494,31 @@ fn baz() {
 "#;
     compare(file);
 }
+
+#[test]
+fn rust_become() {
+    let file = r#"
+fn f(x: u64) -> u64 {
+    if x == 0 { 0 } else { become f(x - 1) }
+}
+
+fn g(x: u64) -> u64 {
+    match x {
+        0 => 0,
+        _ => become   g(x-1),
+    }
+}
+
+impl S {
+    fn h(&self, x: u64) -> u64 {
+        become self.h(x)
+    }
+
+    fn k<T>(x: u64) -> u64 {
+        let become_count = x;
+        become Self::k::<T>(become_count)
+    }
+}
+"#;
+    compare(file);
+}

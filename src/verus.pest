@@ -349,6 +349,7 @@ recommends_str = ${ "recommends" ~ !("_" | ASCII_ALPHANUMERIC) }
 ref_str = ${ "ref" ~ !("_" | ASCII_ALPHANUMERIC) }
 requires_str = ${ "requires" ~ !("_" | ASCII_ALPHANUMERIC) }
 return_str = ${ "return" ~ !("_" | ASCII_ALPHANUMERIC) }
+become_str = ${ "become" ~ !("_" | ASCII_ALPHANUMERIC) }
 r_str = ${ "r" ~ !("_" | ASCII_ALPHANUMERIC) }
 Self_str = ${ "Self" ~ !("_" | ASCII_ALPHANUMERIC) }
 self_str = ${ "self" ~ !("_" | ASCII_ALPHANUMERIC) }
@@ -430,7 +431,7 @@ keyword = {
     
     // Reserved    
     | "abstract"
-    | "become"
+    | become_str
     | box_str
     | do_str
     | final_str
@@ -1158,6 +1159,7 @@ expr_inner_no_struct = _{
   | paren_expr
   | ref_expr
   | return_expr
+  | become_expr
   | tuple_expr
   | while_expr
   | yield_expr
@@ -1572,6 +1574,11 @@ match_guard = {
 
 return_expr = {
     attr* ~ return_str ~ expr?
+}
+
+// Verus fork (fip(strict)): `become f(x)`, an explicit tail call (Rust's `explicit_tail_calls`)
+become_expr = {
+    attr* ~ become_str ~ expr
 }
 
 yield_expr = {
