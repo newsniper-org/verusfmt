@@ -791,6 +791,7 @@ fn to_doc<'a>(
         | Rule::recommends_str
         | Rule::no_unwind_str
         | Rule::allocates_str
+        | Rule::encapsulates_str
         | Rule::with_str
         | Rule::requires_str => arena.hardline().append(s).nest(INDENT_SPACES),
 
@@ -1532,6 +1533,7 @@ fn to_doc<'a>(
         Rule::decreases_clause => map_to_doc(ctx, arena, pair),
         Rule::unwind_clause => map_to_doc(ctx, arena, pair),
         Rule::allocates_clause => map_to_doc(ctx, arena, pair),
+        Rule::encapsulates_clause => map_to_doc(ctx, arena, pair),
         Rule::opens_invariants_mode => arena
             .space()
             .append(map_to_doc(ctx, arena, pair))

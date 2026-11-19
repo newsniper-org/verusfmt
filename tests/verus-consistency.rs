@@ -2596,6 +2596,103 @@ fn closures() {
 }
 
 #[test]
+fn verus_encapsulates_and_closure_no_unwind() {
+    let file = r###"
+verus! {
+impl Pool {
+fn alloc(&mut self) -> (r: u64) encapsulates alloc(1, 0) { self.n }
+
+fn cond(&mut self, k: u64) ensures true encapsulates alloc(0, if k > 10 { 1 } else { 0 }) { }
+
+fn both() no_unwind allocates 1 { }
+
+fn after_comma() ensures true, encapsulates alloc(2, 0) { }
+}
+
+pub assume_specification[ ext_free ](x: u64) encapsulates alloc(0, 1);
+
+fn closures(f: F) -> u64 requires !f.unwinds(1) {
+    let lim = 10u64;
+    let a = |y: u64| -> (r: u64) no_unwind { y / 2 };
+    let b = |y: u64| -> (r: u64) no_unwind when y < lim { y };
+    let c = |y: u64| -> (r: u64) ensures r == y no_unwind allocates 0 { y };
+    a(1)
+}
+} // verus!
+"###;
+    assert_snapshot!(parse_and_format(file).unwrap(), @r###"
+    verus! {
+
+    impl Pool {
+        fn alloc(&mut self) -> (r: u64)
+            encapsulates
+                alloc(1, 0),
+        {
+            self.n
+        }
+
+        fn cond(&mut self, k: u64)
+            ensures
+                true,
+            encapsulates
+                alloc(
+                    0,
+                    if k > 10 {
+                        1
+                    } else {
+                        0
+                    },
+                ),
+        {
+        }
+
+        fn both()
+            no_unwind
+            allocates
+                1,
+        {
+        }
+
+        fn after_comma()
+            ensures
+                true,
+            encapsulates
+                alloc(2, 0),
+        {
+        }
+    }
+
+    pub assume_specification[ ext_free ](x: u64)
+        encapsulates
+            alloc(0, 1),
+    ;
+
+    fn closures(f: F) -> u64
+        requires
+            !f.unwinds(1),
+    {
+        let lim = 10u64;
+        let a = |y: u64| -> (r: u64)
+            no_unwind
+            { y / 2 };
+        let b = |y: u64| -> (r: u64)
+            no_unwind when y < lim
+            { y };
+        let c = |y: u64| -> (r: u64)
+            ensures
+                r == y,
+            no_unwind
+            allocates
+                0,
+            { y };
+        a(1)
+    }
+
+    } // verus!
+"###);
+}
+
+#[test]
 fn verus_generic_arg_binding() {
     let file = r###"
 verus! {

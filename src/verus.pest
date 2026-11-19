@@ -335,6 +335,7 @@ nat_str = ${ "nat" ~ !("_" | ASCII_ALPHANUMERIC) }
 none_str = ${ "none" ~ !("_" | ASCII_ALPHANUMERIC) }
 no_unwind_str = ${ "no_unwind" ~ !("_" | ASCII_ALPHANUMERIC) }
 allocates_str = ${ "allocates" ~ !("_" | ASCII_ALPHANUMERIC) }
+encapsulates_str = ${ "encapsulates" ~ !("_" | ASCII_ALPHANUMERIC) }
 with_str = ${ "with" ~ !("_" | ASCII_ALPHANUMERIC) }
 no_unwind_when_str = ${ "when" ~ !("_" | ASCII_ALPHANUMERIC) }
 opens_invariants_str = ${ "opens_invariants" ~ !("_" | ASCII_ALPHANUMERIC) }
@@ -751,7 +752,7 @@ use_tree_list = {
 
 fn_qualifier = {
     atomic_spec?
-    ~ (requires_clause | recommends_clause | ensures_clause | default_ensures_clause | returns_clause | decreases_clause | opens_invariants_clause | unwind_clause | allocates_clause)*
+    ~ (requires_clause | recommends_clause | ensures_clause | default_ensures_clause | returns_clause | decreases_clause | opens_invariants_clause | unwind_clause | allocates_clause | encapsulates_clause)*
 }
 
 fn_terminator = {
@@ -1458,7 +1459,7 @@ closure_expr = {
     attr* ~ (!forall_str ~ for_str ~ generic_param_list)? ~
     const_str? ~ static_str? ~ async_str? ~ move_str? ~
     proof_fn_with_characteristics_spaced? ~
-    closure_param_list ~ ret_type? ~ requires_clause? ~ ensures_clause? ~ opens_invariants_clause? ~ allocates_clause? ~
+    closure_param_list ~ ret_type? ~ requires_clause? ~ ensures_clause? ~ opens_invariants_clause? ~ unwind_clause? ~ allocates_clause? ~
     attr_inner* ~
     expr
 }
@@ -1941,6 +1942,7 @@ verus_clause_non_expr = _{
   | inner_mask_str
   | no_unwind_str
   | allocates_str
+  | encapsulates_str
 }
 
 requires_clause = {
@@ -1985,6 +1987,10 @@ unwind_clause = {
 
 allocates_clause = {
     allocates_str ~ comma_delimited_exprs_for_verus_clauses?
+}
+
+encapsulates_clause = {
+    encapsulates_str ~ comma_delimited_exprs_for_verus_clauses?
 }
 
 opens_invariants_mode = {
