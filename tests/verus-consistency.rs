@@ -2693,6 +2693,89 @@ fn closures(f: F) -> u64 requires !f.unwinds(1) {
 }
 
 #[test]
+fn verus_deallocates_clause() {
+    let file = r###"
+verus! {
+fn f(x: u64) allocates 0 deallocates 1 { }
+
+fn g(x: u64) deallocates deallocates_when(1int, x > 5) { }
+
+fn h(n: u64) ensures true, deallocates n { }
+
+fn k(n: u64) allocates 0, deallocates n { }
+
+pub assume_specification[ ext_free ](x: u64) deallocates 1;
+
+fn closures(f: F) -> u64 requires !f.deallocates(1), f.deallocations(1) == 0 {
+    let c = |y: u64| -> (r: u64) allocates 0 deallocates 0 { y };
+    let d = |y: u64| -> (r: u64) deallocates 0 { y };
+    assert(deallocated() == 0);
+    c(1)
+}
+} // verus!
+"###;
+    assert_snapshot!(parse_and_format(file).unwrap(), @r###"
+    verus! {
+
+    fn f(x: u64)
+        allocates
+            0,
+        deallocates
+            1,
+    {
+    }
+
+    fn g(x: u64)
+        deallocates
+            deallocates_when(1int, x > 5),
+    {
+    }
+
+    fn h(n: u64)
+        ensures
+            true,
+        deallocates
+            n,
+    {
+    }
+
+    fn k(n: u64)
+        allocates
+            0,
+        deallocates
+            n,
+    {
+    }
+
+    pub assume_specification[ ext_free ](x: u64)
+        deallocates
+            1,
+    ;
+
+    fn closures(f: F) -> u64
+        requires
+            !f.deallocates(1),
+            f.deallocations(1) == 0,
+    {
+        let c = |y: u64| -> (r: u64)
+            allocates
+                0,
+            deallocates
+                0,
+            { y };
+        let d = |y: u64| -> (r: u64)
+            deallocates
+                0,
+            { y };
+        assert(deallocated() == 0);
+        c(1)
+    }
+
+    } // verus!
+    "###);
+}
+
+#[test]
 fn verus_generic_arg_binding() {
     let file = r###"
 verus! {
